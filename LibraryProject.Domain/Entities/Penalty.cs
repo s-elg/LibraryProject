@@ -17,5 +17,4 @@ public class Penalty : BaseEntity
     public string Reason { get; set; } = string.Empty;
     public DateTime SuspensionEndDate { get; set; }
     public PenaltyStatus Status { get; set; } = PenaltyStatus.Active;
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }
