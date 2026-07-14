@@ -1,6 +1,6 @@
 ﻿using LibraryProject.Domain.Entities;
 
-namespace LibraryProject.Application.Interfaces
+namespace LibraryProject.Application.Interfaces.Repositories
 {
     public interface IGenericRepository<T> where T : BaseEntity
     {
