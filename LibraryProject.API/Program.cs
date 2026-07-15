@@ -6,7 +6,10 @@ using LibraryProject.Application.Settings;
 using LibraryProject.Infrastructure.Data;
 using LibraryProject.Infrastructure.Repositories;
 using LibraryProject.Infrastructure.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,10 +42,30 @@ builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSet
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
-// ---> JWT Authentication servisini kaydet (bunu birazdan TokenService'ten sonra tam olarak yazacaðýz)
-//builder.Services.AddAuthentication(...)
-//    .AddJwtBearer(...);
+// ---> JWT Authentication middleware'i
+var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>()!;
 
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidIssuer = jwtSettings.Issuer,
+        ValidateAudience = true,
+        ValidAudience = jwtSettings.Audience,
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SecretKey)),
+        ValidateLifetime = true,
+        ClockSkew = TimeSpan.Zero // varsayýlan 5 dakikalýk toleransý kaldýrýyoruz, token süresi tam bitince gerçekten bitsin
+    };
+});
+
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
@@ -54,6 +77,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseAuthentication();
 
 app.UseAuthorization();
 
