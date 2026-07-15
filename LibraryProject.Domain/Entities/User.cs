@@ -16,4 +16,5 @@ public class User : BaseEntity
     public ICollection<Loan> Loans { get; set; } = new List<Loan>();
     public ICollection<Review> Reviews { get; set; } = new List<Review>();
     public ICollection<Penalty> Penalties { get; set; } = new List<Penalty>();
+    public ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
 }

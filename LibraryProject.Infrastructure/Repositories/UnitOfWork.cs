@@ -15,6 +15,7 @@ public class UnitOfWork : IUnitOfWork
     private ILoanRepository? _loans;
     private IReviewRepository? _reviews;
     private IPenaltyRepository? _penalties;
+    private IRefreshTokenRepository? _refreshTokens;
 
     public UnitOfWork(ApplicationDbContext context)
     {
@@ -27,6 +28,7 @@ public class UnitOfWork : IUnitOfWork
     public ILoanRepository Loans => _loans ??= new LoanRepository(_context);
     public IReviewRepository Reviews => _reviews ??= new ReviewRepository(_context);
     public IPenaltyRepository Penalties => _penalties ??= new PenaltyRepository(_context);
+    public IRefreshTokenRepository RefreshTokens => _refreshTokens ??= new RefreshTokenRepository(_context);
 
     public async Task<int> SaveChangesAsync()
     {

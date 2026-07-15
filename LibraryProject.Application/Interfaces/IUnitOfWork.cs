@@ -11,6 +11,7 @@ public interface IUnitOfWork : IDisposable
     ILoanRepository Loans { get; }
     IReviewRepository Reviews { get; }
     IPenaltyRepository Penalties { get; }
+    IRefreshTokenRepository RefreshTokens { get; }
 
     Task<int> SaveChangesAsync();
 }

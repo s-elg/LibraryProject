@@ -1,6 +1,11 @@
 using LibraryProject.Application.Interfaces;
+using LibraryProject.Application.Interfaces.Repositories;
+using LibraryProject.Application.Interfaces.Services;
+using LibraryProject.Application.Services;
+using LibraryProject.Application.Settings;
 using LibraryProject.Infrastructure.Data;
 using LibraryProject.Infrastructure.Repositories;
+using LibraryProject.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -24,9 +29,20 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ILoanRepository, LoanRepository>();
 builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<IPenaltyRepository, PenaltyRepository>();
+builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>)); // Generic repository, Category gibi özel interface'i olmayanlar için
 
-// Generic repository, Category gibi özel interface'i olmayanlar için
-builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+// ---> JWT ayarlarýný tip-güvenli olarak baðla
+builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
+
+// ---> Auth ile ilgili servisleri kaydet
+builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+
+// ---> JWT Authentication servisini kaydet (bunu birazdan TokenService'ten sonra tam olarak yazacaðýz)
+//builder.Services.AddAuthentication(...)
+//    .AddJwtBearer(...);
+
 
 var app = builder.Build();
 
