@@ -16,9 +16,7 @@ public class PenaltyRepository : GenericRepository<Penalty>, IPenaltyRepository
         var now = DateTime.UtcNow;
 
         return await _dbSet
-            .AnyAsync(p => p.UserId == userId &&
-                           p.Status == PenaltyStatus.Active &&
-                           p.SuspensionEndDate > now);
+        .AnyAsync(p => p.UserId == userId && p.Status == PenaltyStatus.Active);
     }
 
     public async Task<IEnumerable<Penalty>> GetByUserAsync(Guid userId)

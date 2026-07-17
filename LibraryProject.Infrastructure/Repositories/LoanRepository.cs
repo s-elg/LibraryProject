@@ -14,8 +14,8 @@ public class LoanRepository : GenericRepository<Loan>, ILoanRepository
     public async Task<IEnumerable<Loan>> GetActiveLoansAsync()
     {
         var now = DateTime.UtcNow;
-
         return await _dbSet
+            .Include(l => l.Book)
             .Where(l => l.Status == LoanStatus.Active && l.DueDate >= now)
             .ToListAsync();
     }
@@ -33,6 +33,7 @@ public class LoanRepository : GenericRepository<Loan>, ILoanRepository
     public async Task<IEnumerable<Loan>> GetByUserAsync(Guid userId)
     {
         return await _dbSet
+            .Include(l => l.Book)
             .Where(l => l.UserId == userId)
             .OrderByDescending(l => l.LoanDate)
             .ToListAsync();
@@ -44,5 +45,12 @@ public class LoanRepository : GenericRepository<Loan>, ILoanRepository
             .Where(l => l.BookId == bookId)
             .OrderByDescending(l => l.LoanDate)
             .ToListAsync();
+    }
+
+    public async Task<Loan?> GetByIdWithDetailsAsync(Guid id)
+    {
+        return await _dbSet
+            .Include(l => l.Book)
+            .FirstOrDefaultAsync(l => l.Id == id);
     }
 }

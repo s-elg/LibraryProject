@@ -46,3 +46,43 @@ public class InvalidBookCopyCountException : AppException
     {
     }
 }
+
+public class BookNotAvailableException : AppException
+{
+    public BookNotAvailableException(string bookTitle)
+        : base($"'{bookTitle}' adlı kitabın şu anda müsait kopyası bulunmuyor.")
+    {
+    }
+}
+
+public class UserSuspendedException : AppException
+{
+    public UserSuspendedException()
+        : base("Aktif bir cezanız bulunduğu için ödünç alma işlemi yapamazsınız. Lütfen kütüphane yönetimiyle iletişime geçin.")
+    {
+    }
+}
+
+public class MaxActiveLoansExceededException : AppException
+{
+    public MaxActiveLoansExceededException(int maxLoans)
+        : base($"Aynı anda en fazla {maxLoans} aktif ödünç kitabınız olabilir.")
+    {
+    }
+}
+
+public class LoanNotFoundException : AppException
+{
+    public LoanNotFoundException(Guid loanId)
+        : base($"Id'si {loanId} olan ödünç kaydı bulunamadı.")
+    {
+    }
+}
+
+public class LoanAlreadyReturnedException : AppException
+{
+    public LoanAlreadyReturnedException(Guid loanId)
+        : base($"Id'si {loanId} olan kitap zaten iade edilmiş.")
+    {
+    }
+}
