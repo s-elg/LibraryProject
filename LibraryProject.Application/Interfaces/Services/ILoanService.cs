@@ -1,4 +1,4 @@
-﻿using LibraryProject.Application.DTOs.Loan;
+﻿using LibraryProject.Application.DTOs;
 
 namespace LibraryProject.Application.Interfaces.Services;
 

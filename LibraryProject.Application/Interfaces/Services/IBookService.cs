@@ -1,5 +1,5 @@
 ﻿using LibraryProject.Application.Common;
-using LibraryProject.Application.DTOs.Book;
+using LibraryProject.Application.DTOs;
 
 namespace LibraryProject.Application.Interfaces.Services;
 

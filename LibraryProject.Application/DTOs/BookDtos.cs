@@ -1,4 +1,4 @@
-﻿namespace LibraryProject.Application.DTOs.Book;
+﻿namespace LibraryProject.Application.DTOs;
 
 public record BookDto(
     Guid Id,

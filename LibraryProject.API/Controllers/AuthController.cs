@@ -1,4 +1,4 @@
-﻿using LibraryProject.Application.DTOs.Auth;
+﻿using LibraryProject.Application.DTOs;
 using LibraryProject.Application.Exceptions;
 using LibraryProject.Application.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;

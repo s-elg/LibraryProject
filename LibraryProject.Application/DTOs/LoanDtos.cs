@@ -1,4 +1,4 @@
-﻿namespace LibraryProject.Application.DTOs.Loan;
+﻿namespace LibraryProject.Application.DTOs;
 
 public record BorrowBookRequestDto(Guid BookId);
 

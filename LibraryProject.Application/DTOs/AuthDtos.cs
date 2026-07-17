@@ -1,6 +1,6 @@
 ﻿using LibraryProject.Domain.Entities;
 
-namespace LibraryProject.Application.DTOs.Auth;
+namespace LibraryProject.Application.DTOs;
 
 public record RegisterRequestDto(string FullName, string Email, string Password);
 

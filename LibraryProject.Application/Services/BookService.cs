@@ -1,5 +1,5 @@
 ﻿using LibraryProject.Application.Common;
-using LibraryProject.Application.DTOs.Book;
+using LibraryProject.Application.DTOs;
 using LibraryProject.Application.Exceptions;
 using LibraryProject.Application.Interfaces;
 using LibraryProject.Application.Interfaces.Services;
