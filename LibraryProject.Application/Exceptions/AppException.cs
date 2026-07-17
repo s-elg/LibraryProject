@@ -30,3 +30,19 @@ public class InvalidRefreshTokenException : AppException
     {
     }
 }
+
+public class BookNotFoundException : AppException
+{
+    public BookNotFoundException(Guid id)
+        : base($"Id'si '{id}' olan kitap bulunamadı.")
+    {
+    }
+}
+
+public class InvalidBookCopyCountException : AppException
+{
+    public InvalidBookCopyCountException(int requestedTotal, int copiesOnLoan)
+        : base($"TotalCopies ({requestedTotal}) ödünçteki kopya sayısından ({copiesOnLoan}) az olamaz.")
+    {
+    }
+}
