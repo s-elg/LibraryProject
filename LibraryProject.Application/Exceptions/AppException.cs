@@ -86,3 +86,43 @@ public class LoanAlreadyReturnedException : AppException
     {
     }
 }
+
+public class ReviewNotFoundException : AppException
+{
+    public ReviewNotFoundException(Guid reviewId)
+        : base($"Id'si {reviewId} olan yorum bulunamadı.")
+    {
+    }
+}
+
+public class DuplicateReviewException : AppException
+{
+    public DuplicateReviewException()
+        : base("Bu kitap için zaten bir yorum yaptınız.")
+    {
+    }
+}
+
+public class BookNotBorrowedException : AppException
+{
+    public BookNotBorrowedException()
+        : base("Yorum yapabilmek için bu kitabı daha önce ödünç almış olmanız gerekir.")
+    {
+    }
+}
+
+public class InvalidRatingException : AppException
+{
+    public InvalidRatingException(int rating)
+        : base($"Puan (Rating) 1 ile 5 arasında olmalıdır. Girilen: {rating}")
+    {
+    }
+}
+
+public class UnauthorizedReviewAccessException : AppException
+{
+    public UnauthorizedReviewAccessException()
+        : base("Bu yorumu güncelleme veya silme yetkiniz yok.")
+    {
+    }
+}
