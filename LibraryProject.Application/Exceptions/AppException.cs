@@ -126,3 +126,28 @@ public class UnauthorizedReviewAccessException : AppException
     {
     }
 }
+
+public class PenaltyNotFoundException : AppException
+{
+    public PenaltyNotFoundException(Guid penaltyId)
+        : base($"Id'si {penaltyId} olan ceza kaydı bulunamadı.")
+    {
+    }
+}
+
+public class PenaltyAlreadyCompletedException : AppException
+{
+    public PenaltyAlreadyCompletedException(Guid penaltyId)
+        : base($"Id'si {penaltyId} olan ceza zaten kaldırılmış durumda.")
+    {
+    }
+}
+
+// UserNotFoundException zaten AuthService'te tanımlıysa bu kısmı atla
+public class UserNotFoundException : AppException
+{
+    public UserNotFoundException(Guid userId)
+        : base($"Id'si {userId} olan kullanıcı bulunamadı.")
+    {
+    }
+}
