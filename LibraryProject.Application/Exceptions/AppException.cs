@@ -151,3 +151,19 @@ public class UserNotFoundException : AppException
     {
     }
 }
+
+public class CategoryNotFoundException : AppException
+{
+    public CategoryNotFoundException(Guid categoryId)
+        : base($"Id'si {categoryId} olan kategori bulunamadı.")
+    {
+    }
+}
+
+public class CategoryHasBooksException : AppException
+{
+    public CategoryHasBooksException(string categoryName)
+        : base($"'{categoryName}' kategorisine bağlı kitaplar olduğu için silinemez. Önce kitapları başka bir kategoriye taşıyın veya silin.")
+    {
+    }
+}
