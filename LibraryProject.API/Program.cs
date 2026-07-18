@@ -1,3 +1,4 @@
+using LibraryProject.API.Middleware;
 using LibraryProject.Application.Interfaces;
 using LibraryProject.Application.Interfaces.Repositories;
 using LibraryProject.Application.Interfaces.Services;
@@ -77,6 +78,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseMiddleware<GlobalExceptionMiddleware>();
 
 app.UseAuthentication();
 
