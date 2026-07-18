@@ -31,7 +31,7 @@ builder.Services.AddSwaggerGen(options =>
         Scheme = "Bearer",
         BearerFormat = "JWT",
         In = ParameterLocation.Header,
-        Description = "JWT token'ýnýzý 'Bearer {token}' formatýnda girin (örn: Bearer eyJhbGciOi...)"
+        Description = "JWT token'ýnýzý 'Bearer' kelimesi OLMADAN, sadece token'ýn kendisini girin (örn: eyJhbGciOi...). Swagger 'Bearer' önekini otomatik ekler."
     });
 
     options.AddSecurityRequirement(new OpenApiSecurityRequirement
