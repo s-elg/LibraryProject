@@ -70,14 +70,17 @@ public class PenaltyService : IPenaltyService
         return penalties.Select(MapToDto);
     }
 
-    public async Task<PenaltyResponseDto> GetByIdAsync(Guid penaltyId)
+    public async Task<PenaltyResponseDto> GetByIdAsync(Guid penaltyId, Guid currentUserId, bool isAdmin)
     {
         var penalty = await _unitOfWork.Penalties.GetByIdAsync(penaltyId);
         if (penalty is null)
         {
             throw new PenaltyNotFoundException(penaltyId);
         }
-
+        if (!isAdmin && penalty.UserId != currentUserId)
+        {
+            throw new UnauthorizedPenaltyAccessException();
+        }
         return MapToDto(penalty);
     }
 

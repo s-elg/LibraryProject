@@ -197,6 +197,14 @@ public class PenaltyAlreadyCompletedException : ConflictException
     }
 }
 
+public class UnauthorizedPenaltyAccessException : ForbiddenException
+{
+    public UnauthorizedPenaltyAccessException()
+        : base("Bu ceza kaydına erişim yetkiniz yok.")
+    {
+    }
+}
+
 // ----- Category -----
 
 public class CategoryNotFoundException : NotFoundException

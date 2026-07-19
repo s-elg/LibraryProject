@@ -8,5 +8,5 @@ public interface IPenaltyService
     Task<PenaltyResponseDto> RemovePenaltyAsync(Guid penaltyId);
     Task<IEnumerable<PenaltyResponseDto>> GetByUserAsync(Guid userId);
     Task<IEnumerable<PenaltyResponseDto>> GetActivePenaltiesAsync();
-    Task<PenaltyResponseDto> GetByIdAsync(Guid penaltyId);
+    Task<PenaltyResponseDto> GetByIdAsync(Guid penaltyId, Guid currentUserId, bool isAdmin);
 }
