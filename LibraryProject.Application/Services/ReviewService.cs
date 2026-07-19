@@ -72,19 +72,17 @@ public class ReviewService : IReviewService
         return MapToDto(review);
     }
 
-    public async Task DeleteReviewAsync(Guid reviewId, Guid userId)
+    public async Task DeleteReviewAsync(Guid reviewId, Guid userId, bool isAdmin)
     {
         var review = await _unitOfWork.Reviews.GetByIdAsync(reviewId);
         if (review is null)
         {
             throw new ReviewNotFoundException(reviewId);
         }
-
-        if (review.UserId != userId)
+        if (!isAdmin && review.UserId != userId)
         {
             throw new UnauthorizedReviewAccessException();
         }
-
         _unitOfWork.Reviews.Delete(review);
         await _unitOfWork.SaveChangesAsync();
     }
