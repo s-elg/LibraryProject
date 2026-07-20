@@ -1,3 +1,4 @@
+using LibraryProject.API.Filters;
 using LibraryProject.API.Middleware;
 using LibraryProject.Application.Interfaces;
 using LibraryProject.Application.Interfaces.Repositories;
@@ -12,12 +13,17 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using FluentValidation; // IValidator<> için (zaten var)
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add<ValidationFilter>();
+});
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
@@ -76,6 +82,10 @@ builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ILoanService, LoanService>();
 builder.Services.AddScoped<IPenaltyService, PenaltyService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
+
+builder.Services.AddScoped<ValidationFilter>();
+builder.Services.AddValidatorsFromAssemblyContaining<Program>(); // Application assembly'sini referans veren herhangi bir tip de olabilir
+builder.Services.AddValidatorsFromAssemblyContaining<AuthService>();
 
 // ---> JWT Authentication middleware'i
 var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>()!;
