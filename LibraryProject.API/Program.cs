@@ -1,3 +1,5 @@
+using FluentValidation; // IValidator<> için (zaten var)
+using Hangfire;
 using LibraryProject.API.Filters;
 using LibraryProject.API.Middleware;
 using LibraryProject.Application.Interfaces;
@@ -5,6 +7,7 @@ using LibraryProject.Application.Interfaces.Repositories;
 using LibraryProject.Application.Interfaces.Services;
 using LibraryProject.Application.Services;
 using LibraryProject.Application.Settings;
+using LibraryProject.Infrastructure.BackgroundJobs;
 using LibraryProject.Infrastructure.Data;
 using LibraryProject.Infrastructure.Repositories;
 using LibraryProject.Infrastructure.Services;
@@ -13,7 +16,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
-using FluentValidation; // IValidator<> için (zaten var)
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -56,6 +58,14 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
+builder.Services.AddHangfire(config => config
+    .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+    .UseSimpleAssemblyNameTypeSerializer()
+    .UseRecommendedSerializerSettings()
+    .UseSqlServerStorage(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddHangfireServer();
+
 // DbContext kaydý
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -84,6 +94,9 @@ builder.Services.AddScoped<IPenaltyService, PenaltyService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 
 builder.Services.AddScoped<ValidationFilter>();
+
+builder.Services.AddScoped<OverdueLoanCheckJob>();
+
 builder.Services.AddValidatorsFromAssemblyContaining<Program>(); // Application assembly'sini referans veren herhangi bir tip de olabilir
 builder.Services.AddValidatorsFromAssemblyContaining<AuthService>();
 
@@ -128,6 +141,12 @@ app.UseMiddleware<GlobalExceptionMiddleware>();
 app.UseAuthentication();
 
 app.UseAuthorization();
+
+app.UseHangfireDashboard("/hangfire");
+RecurringJob.AddOrUpdate<OverdueLoanCheckJob>(
+    "check-overdue-loans",
+    job => job.CheckOverdueLoansAsync(),
+    Cron.Hourly);
 
 app.MapControllers();
 
