@@ -4,6 +4,7 @@ using LibraryProject.Application.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace LibraryProject.API.Controllers;
 
@@ -64,7 +65,12 @@ public class AuthController : ControllerBase
     [HttpPost("logout")]
     public async Task<IActionResult> Logout()
     {
-        var userId = Guid.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub)!.Value);
+        var idClaim = User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst(JwtRegisteredClaimNames.Sub);
+        if (idClaim is null) return Unauthorized();
+
+        if (!Guid.TryParse(idClaim.Value, out var userId)) 
+            return BadRequest(new { message = "Invalid user id in token." });
+
         await _authService.LogoutAsync(userId);
         return NoContent();
     }
