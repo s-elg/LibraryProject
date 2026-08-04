@@ -45,7 +45,14 @@ public class GlobalExceptionMiddleware
         context.Response.StatusCode = (int)statusCode;
 
         var response = new ErrorResponseDto(message, context.TraceIdentifier);
-        var json = JsonSerializer.Serialize(response);
+
+        // JSON property'lerini camelCase (message, traceId) formatına zorluyoruz
+        var options = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
+
+        var json = JsonSerializer.Serialize(response, options);
 
         await context.Response.WriteAsync(json);
     }
