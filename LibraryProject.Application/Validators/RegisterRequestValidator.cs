@@ -48,4 +48,34 @@ namespace LibraryProject.Application.Validators
                 .NotEmpty().WithMessage("Refresh token boş olamaz.");
         }
     }
+
+    public class UpdateProfileRequestValidator : AbstractValidator<UpdateProfileRequestDto>
+    {
+        public UpdateProfileRequestValidator()
+        {
+            RuleFor(x => x.FullName)
+                .NotEmpty().WithMessage("Ad Soyad boş olamaz.")
+                .MinimumLength(3).WithMessage("Ad Soyad en az 3 karakter olmalı.")
+                .MaximumLength(100).WithMessage("Ad Soyad en fazla 100 karakter olabilir.");
+
+            RuleFor(x => x.Email)
+                .NotEmpty().WithMessage("Email boş olamaz.")
+                .EmailAddress().WithMessage("Geçerli bir email adresi giriniz.");
+        }
+    }
+
+    public class ChangePasswordRequestValidator : AbstractValidator<ChangePasswordRequestDto>
+    {
+        public ChangePasswordRequestValidator()
+        {
+            RuleFor(x => x.CurrentPassword)
+                .NotEmpty().WithMessage("Mevcut şifre boş olamaz.");
+
+            RuleFor(x => x.NewPassword)
+                .NotEmpty().WithMessage("Şifre boş olamaz.")
+                .MinimumLength(6).WithMessage("Şifre en az 6 karakter olmalı.")
+                .Matches("[A-Z]").WithMessage("Şifre en az bir büyük harf içermeli.")
+                .Matches("[0-9]").WithMessage("Şifre en az bir rakam içermeli.");
+        }
+    }
 }

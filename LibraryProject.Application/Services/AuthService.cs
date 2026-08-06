@@ -115,4 +115,49 @@ public class AuthService : IAuthService
 
         return new AuthResponseDto(accessToken, refreshToken, user.Email, user.FullName, user.Role);
     }
+
+    public async Task<UserProfileDto> GetProfileAsync(Guid userId)
+    {
+        var user = await _unitOfWork.Users.GetByIdAsync(userId)
+            ?? throw new UserNotFoundException(userId);
+
+        return new UserProfileDto(user.FullName, user.Email, user.Role);
+    }
+
+    public async Task<UserProfileDto> UpdateProfileAsync(Guid userId, UpdateProfileRequestDto request)
+    {
+        var user = await _unitOfWork.Users.GetByIdAsync(userId)
+            ?? throw new UserNotFoundException(userId);
+
+        // Email değişiyorsa benzersizlik kontrolü yap (kendi mevcut emailine izin ver)
+        if (!string.Equals(user.Email, request.Email, StringComparison.OrdinalIgnoreCase))
+        {
+            if (!await _unitOfWork.Users.IsEmailUniqueAsync(request.Email))
+                throw new EmailAlreadyExistsException(request.Email);
+
+            user.Email = request.Email;
+        }
+
+        user.FullName = request.FullName;
+
+        await _unitOfWork.SaveChangesAsync();
+
+        return new UserProfileDto(user.FullName, user.Email, user.Role);
+    }
+
+    public async Task ChangePasswordAsync(Guid userId, ChangePasswordRequestDto request)
+    {
+        var user = await _unitOfWork.Users.GetByIdAsync(userId)
+            ?? throw new UserNotFoundException(userId);
+
+        if (!BCrypt.Net.BCrypt.Verify(request.CurrentPassword, user.PasswordHash))
+            throw new WrongCurrentPasswordException();
+
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+
+        // Güvenlik: şifre değiştiğinde tüm cihazlardaki oturumları geçersiz kıl
+        await _unitOfWork.RefreshTokens.RevokeAllUserTokensAsync(userId);
+
+        await _unitOfWork.SaveChangesAsync();
+    }
 }

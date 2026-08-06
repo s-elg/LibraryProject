@@ -77,6 +77,14 @@ public class UserNotFoundException : NotFoundException
     }
 }
 
+public class WrongCurrentPasswordException : UnauthorizedAppException
+{
+    public WrongCurrentPasswordException()
+        : base("Mevcut şifre hatalı.")
+    {
+    }
+}
+
 // ----- Book -----
 
 public class BookNotFoundException : NotFoundException

@@ -74,4 +74,75 @@ public class AuthController : ControllerBase
         await _authService.LogoutAsync(userId);
         return NoContent();
     }
+
+    [Authorize]
+    [HttpGet("me")]
+    public async Task<ActionResult<UserProfileDto>> GetProfile()
+    {
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized();
+
+        try
+        {
+            var result = await _authService.GetProfileAsync(userId.Value);
+            return Ok(result);
+        }
+        catch (UserNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    [Authorize]
+    [HttpPut("profile")]
+    public async Task<ActionResult<UserProfileDto>> UpdateProfile(UpdateProfileRequestDto request)
+    {
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized();
+
+        try
+        {
+            var result = await _authService.UpdateProfileAsync(userId.Value, request);
+            return Ok(result);
+        }
+        catch (EmailAlreadyExistsException ex)
+        {
+            return Conflict(new { message = ex.Message });
+        }
+        catch (UserNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    [Authorize]
+    [HttpPut("change-password")]
+    public async Task<IActionResult> ChangePassword(ChangePasswordRequestDto request)
+    {
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized();
+
+        try
+        {
+            await _authService.ChangePasswordAsync(userId.Value, request);
+            return NoContent();
+        }
+        catch (WrongCurrentPasswordException ex)
+        {
+            return Unauthorized(new { message = ex.Message });
+        }
+        catch (UserNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    private Guid? GetUserId()
+    {
+        var idClaim = User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst(JwtRegisteredClaimNames.Sub);
+        if (idClaim is null || !Guid.TryParse(idClaim.Value, out var userId))
+            return null;
+
+        return userId;
+    }
 }
