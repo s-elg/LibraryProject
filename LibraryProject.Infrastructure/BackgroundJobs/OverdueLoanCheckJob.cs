@@ -37,4 +37,37 @@ public class OverdueLoanCheckJob
 
         _logger.LogInformation("{Count} adet loan Overdue olarak işaretlendi.", overdueLoans.Count);
     }
+
+    public async Task CheckExpiredReservationsAsync()
+    {
+        var expiredReservations = await _context.Loans
+            .Include(l => l.Book)
+            .Where(l => l.Status == LoanStatus.Reserved
+                        && l.PickupDeadline != null
+                        && l.PickupDeadline < DateTime.UtcNow)
+            .ToListAsync();
+
+        if (!expiredReservations.Any())
+        {
+            _logger.LogInformation("Reservation expiry check tamamlandı, süresi geçen rezervasyon bulunamadı.");
+            return;
+        }
+
+        foreach (var loan in expiredReservations)
+        {
+            loan.Status = LoanStatus.Expired;
+            loan.PickupDeadline = null;
+
+            if (loan.Book is not null)
+            {
+                loan.Book.AvailableCopies += 1;
+            }
+        }
+
+        await _context.SaveChangesAsync();
+
+        _logger.LogInformation(
+            "{Count} adet rezervasyonun süresi doldu, Expired olarak işaretlendi ve stok iade edildi.",
+            expiredReservations.Count);
+    }
 }

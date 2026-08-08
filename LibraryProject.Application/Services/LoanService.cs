@@ -10,6 +10,7 @@ public class LoanService : ILoanService
 {
     private const int LoanDurationDays = 14;
     private const int MaxActiveLoansPerUser = 3;
+    private const int PickupWindowDays = 3; 
 
     private readonly IUnitOfWork _unitOfWork;
 
@@ -28,8 +29,11 @@ public class LoanService : ILoanService
         }
 
         // 2) Aktif ödünç limiti kontrol et
+        // NOT: Reserved durumundaki loan'lar da limite dahil edildi, çünkü kullanıcı
+        // o kitabı zaten "üstlenmiş" durumda, teslim almamış olsa bile.
         var userLoans = await _unitOfWork.Loans.GetByUserAsync(userId);
-        var activeLoanCount = userLoans.Count(l => l.Status == LoanStatus.Active);
+        var activeLoanCount = userLoans.Count(l =>
+            l.Status == LoanStatus.Active || l.Status == LoanStatus.Reserved);
         if (activeLoanCount >= MaxActiveLoansPerUser)
         {
             throw new MaxActiveLoansExceededException(MaxActiveLoansPerUser);
@@ -42,28 +46,92 @@ public class LoanService : ILoanService
             throw new BookNotAvailableException(book?.Title ?? "Bilinmeyen kitap");
         }
 
-        // 4) Loan oluştur
-        var loanDate = DateTime.UtcNow;
+        // 4) Loan'ı "Reserved" olarak oluştur — henüz fiziksel teslim yok
+        var now = DateTime.UtcNow;
+        var pickupDeadline = now.AddDays(PickupWindowDays);
+
         var loan = new Loan
         {
             UserId = userId,
             BookId = bookId,
-            LoanDate = loanDate,
-            DueDate = loanDate.AddDays(LoanDurationDays),
-            Status = LoanStatus.Active
+            LoanDate = now,            // rezervasyon anı; teslim alınınca ConfirmPickupAsync güncelleyecek
+            DueDate = pickupDeadline,  // 14 günlük sayaç henüz başlamadı, DueDate şimdilik pickup deadline'a eşit
+            Status = LoanStatus.Reserved,
+            PickupDeadline = pickupDeadline
         };
 
         await _unitOfWork.Loans.AddAsync(loan);
 
-        // 5) Kitabın müsait kopya sayısını düşür
+        // 5) Kitabın müsait kopya sayısını düşür (rezervasyon anında düşüyor,
+        // çünkü kitap fiziksel olarak ayrılmış sayılıyor)
         book.AvailableCopies -= 1;
         _unitOfWork.Books.Update(book);
 
-        // Tek transaction: loan eklenmesi ve kopya sayısının düşmesi ya birlikte
-        // kaydedilmeli ya da hiç kaydedilmemeli (tutarlılık).
         await _unitOfWork.SaveChangesAsync();
 
-        loan.Book = book; // DTO map için
+        loan.Book = book;
+        return MapToDto(loan);
+    }
+
+    public async Task<LoanResponseDto> CancelReservationAsync(Guid loanId, Guid userId)
+    {
+        var loan = await _unitOfWork.Loans.GetByIdWithDetailsAsync(loanId);
+        if (loan is null)
+        {
+            throw new LoanNotFoundException(loanId);
+        }
+
+        if (loan.UserId != userId)
+        {
+            throw new UnauthorizedLoanAccessException();
+        }
+
+        if (loan.Status != LoanStatus.Reserved)
+        {
+            throw new InvalidLoanStatusException(
+                "Sadece teslim alınmayı bekleyen rezervasyonlar iptal edilebilir.");
+        }
+
+        loan.Status = LoanStatus.Cancelled;
+        loan.PickupDeadline = null;
+        _unitOfWork.Loans.Update(loan);
+
+        // Stok geri iade
+        var book = await _unitOfWork.Books.GetByIdAsync(loan.BookId);
+        if (book is not null)
+        {
+            book.AvailableCopies += 1;
+            _unitOfWork.Books.Update(book);
+        }
+
+        await _unitOfWork.SaveChangesAsync();
+        return MapToDto(loan);
+    }
+
+    public async Task<LoanResponseDto> ConfirmPickupAsync(Guid loanId)
+    {
+        var loan = await _unitOfWork.Loans.GetByIdWithDetailsAsync(loanId);
+        if (loan is null)
+        {
+            throw new LoanNotFoundException(loanId);
+        }
+
+        if (loan.Status != LoanStatus.Reserved)
+        {
+            throw new InvalidLoanStatusException(
+                $"Bu ödünç kaydı 'Reserved' durumunda değil (mevcut durum: {loan.Status}), teslim onayı verilemez.");
+        }
+
+        // 14 günlük ödünç süresi burada, fiziksel teslim anında başlıyor
+        var pickupDate = DateTime.UtcNow;
+        loan.LoanDate = pickupDate;
+        loan.DueDate = pickupDate.AddDays(LoanDurationDays);
+        loan.PickupDeadline = null;
+        loan.Status = LoanStatus.Active;
+
+        _unitOfWork.Loans.Update(loan);
+        await _unitOfWork.SaveChangesAsync();
+
         return MapToDto(loan);
     }
 
@@ -87,7 +155,6 @@ public class LoanService : ILoanService
         loan.Status = LoanStatus.Returned;
         _unitOfWork.Loans.Update(loan);
 
-        // Kitabın müsait kopya sayısını artır
         var book = await _unitOfWork.Books.GetByIdAsync(loan.BookId);
         if (book is not null)
         {
@@ -95,7 +162,6 @@ public class LoanService : ILoanService
             _unitOfWork.Books.Update(book);
         }
 
-        // Geç iade varsa ceza oluştur
         if (isLate)
         {
             var lateDays = (returnDate - loan.DueDate).Days;
@@ -104,14 +170,13 @@ public class LoanService : ILoanService
                 UserId = loan.UserId,
                 LoanId = loan.Id,
                 Reason = $"'{loan.Book.Title}' adlı kitap {lateDays} gün gecikmeyle iade edildi.",
-                SuspensionEndDate = returnDate, // bilgi amaçlı; gating Status'a göre yapılıyor
+                SuspensionEndDate = returnDate,
                 Status = PenaltyStatus.Active
             };
 
             await _unitOfWork.Penalties.AddAsync(penalty);
         }
 
-        // Tek transaction: iade, kopya artışı ve (varsa) ceza birlikte kaydedilir.
         await _unitOfWork.SaveChangesAsync();
 
         return MapToDto(loan);
@@ -150,7 +215,8 @@ public class LoanService : ILoanService
             loan.LoanDate,
             loan.DueDate,
             loan.ReturnDate,
-            loan.Status.ToString()
+            loan.Status.ToString(),
+            loan.PickupDeadline
         );
     }
 }

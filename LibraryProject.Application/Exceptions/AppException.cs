@@ -111,6 +111,11 @@ public class BookNotAvailableException : BusinessRuleException
     }
 }
 
+public class InvalidLoanStatusException : BusinessRuleException
+{
+    public InvalidLoanStatusException(string message) : base(message) { }
+}
+
 // ----- Loan -----
 
 public class UserSuspendedException : ForbiddenException
@@ -141,6 +146,14 @@ public class LoanAlreadyReturnedException : ConflictException
 {
     public LoanAlreadyReturnedException(Guid loanId)
         : base($"Id'si {loanId} olan kitap zaten iade edilmiş.")
+    {
+    }
+}
+
+public class UnauthorizedLoanAccessException : ForbiddenException
+{
+    public UnauthorizedLoanAccessException()
+        : base("Bu ödünç kaydına erişim yetkiniz yok.")
     {
     }
 }

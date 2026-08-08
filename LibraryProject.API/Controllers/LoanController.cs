@@ -85,4 +85,22 @@ public class LoanController : ControllerBase
 
         return Ok(loan);
     }
+
+    // POST: api/loan/{id}/cancel
+    [HttpPost("{id:guid}/cancel")]
+    public async Task<IActionResult> CancelReservation(Guid id)
+    {
+        var userId = GetCurrentUserId();
+        var loan = await _loanService.CancelReservationAsync(id, userId);
+        return Ok(loan);
+    }
+
+    // PUT: api/loan/{id}/confirm-pickup
+    [HttpPut("{id:guid}/confirm-pickup")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> ConfirmPickup(Guid id)
+    {
+        var loan = await _loanService.ConfirmPickupAsync(id);
+        return Ok(loan);
+    }
 }

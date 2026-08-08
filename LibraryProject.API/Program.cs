@@ -163,6 +163,10 @@ RecurringJob.AddOrUpdate<OverdueLoanCheckJob>(
     "check-overdue-loans",
     job => job.CheckOverdueLoansAsync(),
     Cron.Hourly);
+RecurringJob.AddOrUpdate<OverdueLoanCheckJob>(
+    "check-expired-reservations",
+    job => job.CheckExpiredReservationsAsync(),
+    Cron.Hourly);
 
 app.MapControllers();
 

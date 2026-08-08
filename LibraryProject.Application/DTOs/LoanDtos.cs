@@ -1,6 +1,4 @@
-﻿namespace LibraryProject.Application.DTOs;
-
-public record BorrowBookRequestDto(Guid BookId);
+﻿public record BorrowBookRequestDto(Guid BookId);
 
 public record LoanResponseDto(
     Guid Id,
@@ -10,5 +8,6 @@ public record LoanResponseDto(
     DateTime LoanDate,
     DateTime DueDate,
     DateTime? ReturnDate,
-    string Status
+    string Status,
+    DateTime? PickupDeadline   
 );
