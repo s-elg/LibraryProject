@@ -53,4 +53,21 @@ public class LoanRepository : GenericRepository<Loan>, ILoanRepository
             .Include(l => l.Book)
             .FirstOrDefaultAsync(l => l.Id == id);
     }
+
+    public async Task<IEnumerable<Loan>> GetLoansSinceAsync(DateTime since)
+    {
+        return await _dbSet
+            .Where(l => l.LoanDate >= since)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<Loan>> GetRecentAsync(int count)
+    {
+        return await _dbSet
+            .Include(l => l.Book)
+            .Include(l => l.User)
+            .OrderByDescending(l => l.LoanDate)
+            .Take(count)
+            .ToListAsync();
+    }
 }

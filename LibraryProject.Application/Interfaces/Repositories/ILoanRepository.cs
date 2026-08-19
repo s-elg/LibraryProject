@@ -1,7 +1,5 @@
 ﻿using LibraryProject.Domain.Entities;
-
 namespace LibraryProject.Application.Interfaces.Repositories;
-
 public interface ILoanRepository : IGenericRepository<Loan>
 {
     Task<Loan?> GetByIdWithDetailsAsync(Guid id);
@@ -9,4 +7,6 @@ public interface ILoanRepository : IGenericRepository<Loan>
     Task<IEnumerable<Loan>> GetOverdueLoansAsync();
     Task<IEnumerable<Loan>> GetByUserAsync(Guid userId);
     Task<IEnumerable<Loan>> GetByBookAsync(Guid bookId);
+    Task<IEnumerable<Loan>> GetLoansSinceAsync(DateTime since);  
+    Task<IEnumerable<Loan>> GetRecentAsync(int count);            
 }
