@@ -96,6 +96,7 @@ builder.Services.AddScoped<ILoanService, LoanService>();
 builder.Services.AddScoped<IPenaltyService, PenaltyService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IStatsService, StatsService>();
+builder.Services.AddScoped<IUserService, UserService>();
 
 builder.Services.AddScoped<ValidationFilter>();
 
